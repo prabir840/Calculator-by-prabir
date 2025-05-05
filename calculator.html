@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Calculator by Prabir</title>
+  <style>
+    :root {
+      --background-light: #d2e8e8;
+      --background-dark: #1a1d21;
+      --text-light: #333;
+      --text-dark: #f8f9fa;
+      --button-bg-light: #e9ecef;
+      --button-bg-dark: #343a40;
+      --button-hover-light: #dee2e6;
+      --button-hover-dark: #495057;
+      --function-button-light: #ced4da;
+      --function-button-dark: #495057;
+      --operation-button-light: #4361ee;
+      --operation-button-dark: #3f51b5;
+      --equals-button-light: #2fb380;
+      --equals-button-dark: #2a9d8f;
+      --display-bg-light: #f1f3f5;
+      --display-bg-dark: #212529;
+      --border-light: rgba(0,0,0,0.1);
+      --border-dark: rgba(255,255,255,0.1);
+      --shadow-light: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
+      --shadow-dark: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.3);
+      --drawer-bg-light: #ffffff;
+      --drawer-bg-dark: #212529;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s, color 0.3s;
+      background-color: var(--background-light);
+      color: var(--text-light);
+      overflow-x: hidden;
+    }
+
+    body.dark {
+      background-color: var(--background-dark);
+      color: var(--text-dark);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 400px;
+      margin: 2rem auto;
+      position: relative;
+      
+    }
+
+    .profile-pic {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .profile-circle {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 30px rgb(1, 205, 246),
+        inset 0 0 30px rgba(47, 182, 249, 0.958);
+    }
+
+    .profile-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .calculator-container {
+      border-radius: 24px;
+      overflow: hidden;
+      user-select: none;
+      box-shadow: var(--shadow-light);
+      background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 5px);
+      background-color: var(--background-light);
+      position: relative;
+      padding-bottom: 60px; /* Added padding to make space for button row */
+    }
+
+    body.dark .calculator-container {
+      box-shadow: var(--shadow-dark);
+      background-color: var(--background-dark);
+      background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, rgba(0,0,0,0) 1px, rgba(0,0,0,0) 5px);
+    }
+
+    .calculator-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Creator banner styles - Fixed background */
+    .creator-banner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      z-index: 5;
+      height: 40px;
+      background: linear-gradient(90deg, #8E2DE2 0%, #4A00E0 100%); /* Added fixed background */
+      overflow: hidden;
+      border-radius: 10px;
+    }
+    
+    .creator-text {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 8px 0;
+      color: white;
+      animation: slide-in-out 10s linear infinite;
+      white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    
+    @keyframes slide-in-out {
+      0% {
+        transform: translateX(100%);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+
+    /* Modified display area with increased height and padding */
+    .display {
+      width: 100%;
+      padding: 2rem 1rem 1rem; /* Increased top padding */
+      margin-top: 40px; /* Added margin-top to accommodate creator banner */
+      margin-bottom: 0.5rem;
+      text-align: right;
+      overflow-x: auto;
+      min-height: 110px; /* Increased min-height for better visibility */
+      background-color: var(--display-bg-light);
+      border-bottom: 2px solid var(--border-light);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+      position: relative;
+      z-index: 2;
+    }
+
+    body.dark .display {
+      background-color: var(--display-bg-dark);
+      border-bottom-color: var(--border-dark);
+      color: var(--text-dark);
+    }
+
+    .input {
+      min-height: 28px;
+      font-size: 1.5rem; /* Increased font size */
+      margin-bottom: 0.5rem;
+      word-break: break-all; /* Allow breaking for long expressions */
+    }
+
+    .result {
+      font-size: 2rem; /* Increased font size */
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+
+    /* Bottom button row styles */
+    .bottom-buttons {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      padding: 0.75rem;
+      background-color: var(--button-bg-light);
+      border-top: 1px solid var(--border-light);
+      z-index: 10;
+    }
+
+    body.dark .bottom-buttons {
+      background-color: var(--button-bg-dark);
+      border-top: 1px solid var(--border-dark);
+    }
+
+    .bottom-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-color: var(--button-bg-light);
+      color: var(--text-light);
+      border: none;
+      transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark .bottom-button {
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+    }
+
+    .bottom-button:hover {
+      transform: translateY(-2px);
+      background-color: var(--button-hover-light);
+    }
+
+    body.dark .bottom-button:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    .calc-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      width: 100%;
+      height: 64px;
+      font-size: 1.25rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+      border: none;
+      background-color: var(--button-bg-light);
+      color: var(--text-light);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .calc-button {
+      background-color: var(--button-bg-dark);
+      color: var(--text-dark);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .calc-button:hover {
+      background-color: var(--button-hover-light);
+      transform: translateY(-1px);
+    }
+
+    body.dark .calc-button:hover {
+      background-color: var(--button-hover-dark);
+      transform: translateY(-1px);
+    }
+
+    .calc-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+
+    body.dark .calc-button:active {
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .function-button {
+      background-color: var(--function-button-light);
+    }
+
+    body.dark .function-button {
+      background-color: var(--function-button-dark);
+    }
+
+    .operation-button {
+      background-color: var(--operation-button-light);
+      color: white;
+    }
+
+    body.dark .operation-button {
+      background-color: var(--operation-button-dark);
+      color: white;
+    }
+
+    .equals-button {
+      background-color: var(--equals-button-light);
+      color: white;
+    }
+
+    body.dark .equals-button {
+      background-color: var(--equals-button-dark);
+      color: white;
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 600ms linear;
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* History drawer */
+    .backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 100%;
+      max-width: 400px;
+      background-color: var(--drawer-bg-light);
+      z-index: 100;
+      box-shadow: -8px 0 15px -3px rgba(0, 0, 0, 0.1), -4px 0 6px -2px rgba(0, 0, 0, 0.05);
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body.dark .drawer {
+      background-color: var(--drawer-bg-dark);
+      box-shadow: -8px 0 15px -3px rgba(0, 0, 0, 0.4), -4px 0 6px -2px rgba(0, 0, 0, 0.2);
+    }
+
+    .drawer.active {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-light);
+      background-color: var(--drawer-bg-light);
+    }
+
+    body.dark .drawer-header {
+      border-bottom-color: var(--border-dark);
+      background-color: var(--drawer-bg-dark);
+    }
+
+    .drawer-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .drawer-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .drawer-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      color: var(--text-light);
+      transition: background-color 0.2s;
+    }
+
+    body.dark .drawer-button {
+      color: var(--text-dark);
+    }
+
+    .drawer-button:hover {
+      background-color: var(--button-hover-light);
+    }
+
+    body.dark .drawer-button:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    .drawer-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    .empty-history {
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.5;
+    }
+
+    .empty-history svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 1rem;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .history-item {
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      background-color: var(--button-bg-light);
+    }
+
+    body.dark .history-item {
+      background-color: var(--button-bg-dark);
+    }
+
+    .history-item:hover {
+      background-color: var(--button-hover-light);
+    }
+
+    body.dark .history-item:hover {
+      background-color: var(--button-hover-dark);
+    }
+
+    .history-timestamp {
+      font-size: 0.875rem;
+      opacity: 0.7;
+      margin-bottom: 0.25rem;
+    }
+
+    .history-expression {
+      font-size: 1.125rem;
+      text-align: right;
+    }
+
+    .history-result {
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-align: right;
+      color: var(--operation-button-light);
+    }
+
+    body.dark .history-result {
+      color: var(--operation-button-dark);
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+    }
+
+    .toast {
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 250px;
+      max-width: 90vw;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: toast-in 0.3s forwards;
+    }
+
+    .toast.success {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .toast.error {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    @keyframes toast-in {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes toast-out {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
+    /* Responsive styles */
+    @media (max-width: 480px) {
+      .container {
+        margin: 1rem;
+      }
+      
+      .calc-button {
+        height: 56px;
+        font-size: 1.125rem;
+      }
+    }
+    
+    /* Welcome Page Styles */
+    .welcome-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1d21 0%, #2c3e50 100%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s, visibility 0.5s;
+    }
+    
+    .welcome-content {
+      text-align: center;
+      color: #fff;
+      max-width: 500px;
+      padding: 2rem;
+    }
+    
+    .welcome-title {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #f6d365 0%, #fda085 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .welcome-text {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+    
+    .welcome-btn {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .welcome-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+    }
+    
+    .welcome-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .welcome-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 1.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+    
+    /* Button animations and effects */
+    .calc-button {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .calc-button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    
+    .calc-button:hover:before {
+      opacity: 0.5;
+    }
+    
+    .calc-button:active {
+      transform: scale(0.95) translateY(2px);
+    }
+    
+    .button-press {
+      animation: button-press 0.2s ease-out;
+    }
+    
+    @keyframes button-press {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(0.92);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    /* Enhanced ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      background-color: rgba(255, 255, 255, 0.4);
+      animation: ripple-enhanced 0.6s linear;
+      pointer-events: none;
+    }
+    
+    @keyframes ripple-enhanced {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Welcome Page Overlay -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-content">
+      <div  class="profile-pic">
+        <div  class="profile-circle">
+          <img
+            src="prabirprofile.jpg"
+            alt="Prabir Samanta"
+          />
+        </div >
+      </div>
+      <h1 class="welcome-title">Welcome to Prabir's Calculator</h1>
+      <p class="welcome-text">A modern calculator with light/dark mode, calculation history, and beautiful animations. Enjoy calculating!</p>
+      <button class="welcome-btn" id="startCalculatorBtn">Start Calculator</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Creator banner -->
+    <div class="creator-banner">
+      <div class="creator-text">This Calculator is made by Prabir ✨ A beautiful calculator with animations and sound effects ✨</div>
+    </div>
+    
+    <div class="calculator-container">
+      <!-- Display area -->
+      <div class="display">
+        <div class="input">0</div>
+        <div class="result"></div>
+      </div>
+
+      <!-- Calculator buttons -->
+      <div class="buttons" tabindex="0">
+        <!-- First row -->
+        <button class="calc-button function-button">C</button>
+        <button class="calc-button function-button">+/-</button>
+        <button class="calc-button function-button">%</button>
+        <button class="calc-button operation-button">÷</button>
+
+        <!-- Second row -->
+        <button class="calc-button">7</button>
+        <button class="calc-button">8</button>
+        <button class="calc-button">9</button>
+        <button class="calc-button operation-button">×</button>
+
+        <!-- Third row -->
+        <button class="calc-button">4</button>
+        <button class="calc-button">5</button>
+        <button class="calc-button">6</button>
+        <button class="calc-button operation-button">−</button>
+
+        <!-- Fourth row -->
+        <button class="calc-button">1</button>
+        <button class="calc-button">2</button>
+        <button class="calc-button">3</button>
+        <button class="calc-button operation-button">+</button>
+
+        <!-- Fifth row -->
+        <button class="calc-button">0</button>
+        <button class="calc-button">.</button>
+        <button class="calc-button">del</button>
+        <button class="calc-button equals-button">=</button>
+      </div>
+      
+      <!-- Bottom buttons row (home, theme toggle, history) -->
+      <div class="bottom-buttons">
+        <button class="bottom-button home-button" aria-label="Go home">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </button>
+        
+        <button class="bottom-button theme-button" aria-label="Toggle theme">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        
+        <button class="bottom-button history-button" aria-label="Show history">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8v4l3 3"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History drawer -->
+  <div class="backdrop"></div>
+  <div class="drawer">
+    <div class="drawer-header">
+      <h2 class="drawer-title">Calculation History</h2>
+      <div class="drawer-actions">
+        <button class="drawer-button clear-history-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+        </button>
+        <button class="drawer-button close-drawer-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-content">
+      <div class="history-list">
+        <!-- History items will be added here dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container for notifications -->
+  <div class="toast-container"></div>
+  
+  <!-- Audio elements -->
+  <audio id="numberSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/212/212-preview.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="operationSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="equalsSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/221/221-preview.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="clearSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/233/233-preview.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="errorSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2/2-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM Elements
+      const welcomeOverlay = document.getElementById('welcomeOverlay');
+      const startCalculatorBtn = document.getElementById('startCalculatorBtn');
+      const body = document.body;
+      const input = document.querySelector('.input');
+      const result = document.querySelector('.result');
+      const buttons = document.querySelectorAll('.calc-button');
+      const themeButton = document.querySelector('.theme-button');
+      const sunIcon = document.querySelector('.sun-icon');
+      const moonIcon = document.querySelector('.moon-icon');
+      const homeButton = document.querySelector('.home-button');
+      const historyButton = document.querySelector('.history-button');
+      const backdrop = document.querySelector('.backdrop');
+      const drawer = document.querySelector('.drawer');
+      const closeDrawerBtn = document.querySelector('.close-drawer-btn');
+      const clearHistoryBtn = document.querySelector('.clear-history-btn');
+      const historyList = document.querySelector('.history-list');
+      const buttonsContainer = document.querySelector('.buttons');
+      
+      // Audio elements
+      const numberSound = document.getElementById('numberSound');
+      const operationSound = document.getElementById('operationSound');
+      const equalsSound = document.getElementById('equalsSound');
+      const clearSound = document.getElementById('clearSound');
+      const errorSound = document.getElementById('errorSound');
+
+      // State
+      let currentInput = "";
+      let currentResult = "";
+      let history = [];
+      let isDarkMode = false;
+
+      // Welcome page handlers
+      startCalculatorBtn.addEventListener('click', () => {
+        welcomeOverlay.style.opacity = '0';
+        welcomeOverlay.style.visibility = 'hidden';
+        
+        // Add transition effect to calculator
+        const calculator = document.querySelector('.calculator-container');
+        calculator.style.animation = 'scale-in 0.5s ease-out forwards';
+      });
+      
+      // Play sound based on button type
+      const playSound = (buttonType) => {
+        switch (buttonType) {
+          case 'number':
+            numberSound.currentTime = 0;
+            numberSound.play();
+            break;
+          case 'operation':
+            operationSound.currentTime = 0;
+            operationSound.play();
+            break;
+          case 'equals':
+            equalsSound.currentTime = 0;
+            equalsSound.play();
+            break;
+          case 'clear':
+            clearSound.currentTime = 0;
+            clearSound.play();
+            break;
+          case 'error':
+            errorSound.currentTime = 0;
+            errorSound.play();
+            break;
+        }
+      };
+
+      // Enhanced button animation
+      const animateButton = (button) => {
+        button.classList.add('button-press');
+        setTimeout(() => {
+          button.classList.remove('button-press');
+        }, 200);
+      };
+      
+      // Load history from localStorage
+      const loadHistory = () => {
+        const savedHistory = localStorage.getItem('calculatorHistory');
+        if (savedHistory) {
+          try {
+            history = JSON.parse(savedHistory);
+          } catch (error) {
+            console.error('Failed to parse history:', error);
+            history = [];
+          }
+        }
+      };
+
+      // Save history to localStorage
+      const saveHistory = () => {
+        localStorage.setItem('calculatorHistory', JSON.stringify(history));
+      };
+
+      // Load theme preference
+      const loadTheme = () => {
+        const savedTheme = localStorage.getItem('calculatorTheme');
+        if (savedTheme === 'dark') {
+          enableDarkMode();
+        }
+      };
+
+      // Enable dark mode
+      const enableDarkMode = () => {
+        body.classList.add('dark');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        isDarkMode = true;
+        localStorage.setItem('calculatorTheme', 'dark');
+      };
+
+      // Enable light mode
+      const enableLightMode = () => {
+        body.classList.remove('dark');
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        isDarkMode = false;
+        localStorage.setItem('calculatorTheme', 'light');
+      };
+
+      // Toggle theme
+      const toggleTheme = () => {
+        if (isDarkMode) {
+          enableLightMode();
+        } else {
+          enableDarkMode();
+        }
+      };
+
+      // Update display
+      const updateDisplay = () => {
+        input.textContent = currentInput || "0";
+        result.textContent = currentResult;
+      };
+
+      // Append to input
+      const appendToInput = (value) => {
+        currentInput += value;
+        updateDisplay();
+      };
+
+      // Clear input
+      const clearInput = () => {
+        currentInput = "";
+        currentResult = "";
+        updateDisplay();
+      };
+
+      // Delete last character
+      const deleteLastChar = () => {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+      };
+
+      // Toggle sign
+      const toggleSign = () => {
+        if (currentInput.startsWith("-")) {
+          currentInput = currentInput.substring(1);
+        } else {
+          currentInput = "-" + currentInput;
+        }
+        updateDisplay();
+      };
+
+      // Calculate result
+      const calculateResult = () => {
+        try {
+          if (!currentInput) return;
+          
+          // Replace operators with JavaScript operators
+          let expression = currentInput
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/−/g, '-')
+            .replace(/%/g, '/100');
+          
+          // Evaluate expression
+          const calculatedResult = new Function('return ' + expression)();
+          
+          // Format the result
+          const formattedResult = Number.isInteger(calculatedResult)
+            ? calculatedResult.toString()
+            : calculatedResult.toFixed(2).replace(/\.?0+$/, "");
+          
+          // Add to history
+          const historyItem = {
+            expression: currentInput,
+            result: formattedResult,
+            timestamp: new Date().toISOString()
+          };
+          history.unshift(historyItem);
+          
+          // Keep only 50 most recent entries
+          if (history.length > 50) {
+            history = history.slice(0, 50);
+          }
+          
+          // Save history
+          saveHistory();
+          
+          // Update state and display
+          currentResult = formattedResult;
+          currentInput = formattedResult;
+          updateDisplay();
+        } catch (error) {
+          playSound('error');
+          showToast('Invalid expression', 'error');
+          currentResult = "Error";
+          updateDisplay();
+        }
+      };
+
+      // Format date for display
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const options = {
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit'
+        };
+        return date.toLocaleDateString(undefined, options);
+      };
+
+      // Show toast notification
+      const showToast = (message, type = 'success') => {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        
+        document.querySelector('.toast-container').appendChild(toast);
+        
+        setTimeout(() => {
+          toast.style.animation = 'toast-out 0.3s forwards';
+          setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 3000);
+      };
+
+      // Create enhanced ripple effect
+      const createRipple = (event) => {
+        const button = event.currentTarget;
+        
+        const circle = document.createElement('span');
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+        const radius = diameter / 2;
+        
+        const rect = button.getBoundingClientRect();
+        
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${event.clientX - rect.left - radius}px`;
+        circle.style.top = `${event.clientY - rect.top - radius}px`;
+        circle.classList.add('ripple');
+        
+        const ripple = button.getElementsByClassName('ripple')[0];
+        
+        if (ripple) {
+          ripple.remove();
+        }
+        
+        button.appendChild(circle);
+        
+        // Remove the ripple after animation
+        setTimeout(() => {
+          if (circle.parentElement) {
+            circle.parentElement.removeChild(circle);
+          }
+        }, 600);
+      };
+
+      // Update history drawer content
+      const updateHistoryDrawer = () => {
+        historyList.innerHTML = '';
+        
+        if (history.length === 0) {
+          historyList.innerHTML = `
+            <div class="empty-history">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v4"></path>
+                <path d="M12 16h.01"></path>
+              </svg>
+              <p>Your calculation history will appear here</p>
+            </div>
+          `;
+          return;
+        }
+        
+        history.forEach((item, index) => {
+          const historyItem = document.createElement('div');
+          historyItem.className = 'history-item';
+          historyItem.innerHTML = `
+            <div class="history-timestamp">${formatDate(item.timestamp)}</div>
+            <div class="history-expression">${item.expression}</div>
+            <div class="history-result">= ${item.result}</div>
+          `;
+          
+          historyItem.addEventListener('click', () => {
+            currentInput = item.result;
+            updateDisplay();
+            closeDrawer();
+          });
+          
+          historyList.appendChild(historyItem);
+        });
+      };
+
+      // Open history drawer
+      const openDrawer = () => {
+        updateHistoryDrawer();
+        backdrop.classList.add('active');
+        drawer.classList.add('active');
+      };
+
+      // Close history drawer
+      const closeDrawer = () => {
+        backdrop.classList.remove('active');
+        drawer.classList.remove('active');
+      };
+
+      // Clear history
+      const clearHistory = () => {
+        history = [];
+        saveHistory();
+        updateHistoryDrawer();
+        showToast('History cleared!');
+      };
+
+      // Handle keyboard input
+      const handleKeyDown = (e) => {
+        const key = e.key;
+        
+        if (key === "Enter") {
+          playSound('equals');
+          calculateResult();
+        } else if (key === "Escape" || key === "c" || key === "C") {
+          playSound('clear');
+          clearInput();
+        } else if (key === "Backspace") {
+          playSound('clear');
+          deleteLastChar();
+        } else if (/[\d+\-*/.%]/.test(key)) {
+          let inputChar = key;
+          if (key === "*") inputChar = "×";
+          if (key === "/") inputChar = "÷";
+          if (key === "-") inputChar = "−";
+          
+          if (/[+\-*/.%]/.test(key)) {
+            playSound('operation');
+          } else {
+            playSound('number');
+          }
+          
+          appendToInput(inputChar);
+        }
+      };
+
+      // Event Listeners
+      buttons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          createRipple(e);
+          animateButton(button);
+          
+          const value = button.textContent;
+          
+          if (value === "C") {
+            playSound('clear');
+            clearInput();
+          } else if (value === "del") {
+            playSound('clear');
+            deleteLastChar();
+          } else if (value === "+/-") {
+            playSound('operation');
+            toggleSign();
+          } else if (value === "=") {
+            playSound('equals');
+            calculateResult();
+          } else if (/[+\-×÷%]/.test(value)) {
+            playSound('operation');
+            appendToInput(value);
+          } else {
+            playSound('number');
+            appendToInput(value);
+          }
+        });
+      });
+
+      homeButton.addEventListener('click', () => {
+        window.location.href = "/";
+      });
+
+      themeButton.addEventListener('click', toggleTheme);
+      historyButton.addEventListener('click', openDrawer);
+      backdrop.addEventListener('click', closeDrawer);
+      closeDrawerBtn.addEventListener('click', closeDrawer);
+      clearHistoryBtn.addEventListener('click', clearHistory);
+      buttonsContainer.addEventListener('keydown', handleKeyDown);
+
+      // Initialize app
+      loadHistory();
+      loadTheme();
+      updateDisplay();
+      
+      // Initialize calculator with subtle entrance animation
+      setTimeout(() => {
+        const calculatorContainer = document.querySelector('.calculator-container');
+        calculatorContainer.style.opacity = '0';
+        calculatorContainer.style.transform = 'translateY(20px)';
+        
+        // Trigger reflow
+        void calculatorContainer.offsetWidth;
+        
+        calculatorContainer.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        calculatorContainer.style.opacity = '1';
+        calculatorContainer.style.transform = 'translateY(0)';
+      }, 100);
+    });
+  </script>
+</body>
+</html>
